@@ -13,50 +13,67 @@
     <script src="https://cdn.tailwindcss.com"></script>
     
    <script>
-    // Firebase Realtime Database URL'niz
+    // 1. DİKKAT: Bu sitenin hangi ayarı göstereceğini buradan seçiyorsunuz.
+    // Diğer sitelerde burayı "10", "18", "21" veya "22" olarak değiştirmeniz YETERLİDİR.
+    const aktifAyar = "22"; 
+
+    // Firebase Realtime Database URL'niz (Avrupa Sunucusu)
     const dbUrl = "https://tumwebsiteleri-default-rtdb.europe-west1.firebasedatabase.app/fiyatlar.json";
 
-    // Verileri çekme ve ekrana yazdırma fonksiyonu
     async function fiyatlariGuncelle() {
         try {
-            // Firebase'den veriyi alıyoruz
             const response = await fetch(dbUrl);
             const veri = await response.json();
 
-            // Veri başarıyla geldiyse HTML içindeki ID'leri bulup değerleri yazdırıyoruz
             if (veri) {
-                // Sadece 14 Ayar ve Has Altın verilerini değişkenlere atıyoruz
                 const hasAltin = veri.HasAltinBazFiyat;
-                const alisMin = veri["14_Ayar_Alis_Fiyat_Min"];
-                const alisMax = veri["14_Ayar_Alis_Fiyat_Max"];
-                const satisMin = veri["14_Ayar_Satis_Fiyat_Min"];
-                const satisMax = veri["14_Ayar_Satis_Fiyat_Max"];
+                
+                // 2. Dinamik olarak Firebase düğümünden ilgili ayarın fiyatlarını çekiyoruz
+                const alisMin = veri[`${aktifAyar}_Ayar_Alis_Fiyat_Min`];
+                const alisMax = veri[`${aktifAyar}_Ayar_Alis_Fiyat_Max`];
+                const satisMin = veri[`${aktifAyar}_Ayar_Satis_Fiyat_Min`];
+                const satisMax = veri[`${aktifAyar}_Ayar_Satis_Fiyat_Max`];
 
-                // HTML'deki ilgili alanlara (span/div) fiyatları yerleştiriyoruz. 
-                // NOT: Aşağıdaki ID'lerin senin HTML tasarımındaki ID'lerle aynı olduğundan emin ol.
-                if(document.getElementById('has-altin-fiyat')) document.getElementById('has-altin-fiyat').innerText = hasAltin.toFixed(2);
+                // 3. HTML'e Giydirme İşlemleri (ID'lerinizle eşleşmelidir)
+                if(document.getElementById('has-altin-fiyat')) {
+                    document.getElementById('has-altin-fiyat').innerText = hasAltin.toFixed(2);
+                }
                 
-                if(document.getElementById('alis-fiyat-min')) document.getElementById('alis-fiyat-min').innerText = alisMin.toFixed(2);
-                if(document.getElementById('alis-fiyat-max')) document.getElementById('alis-fiyat-max').innerText = alisMax.toFixed(2);
+                if(document.getElementById('alis-fiyat-min')) {
+                    document.getElementById('alis-fiyat-min').innerText = alisMin.toFixed(2);
+                }
+                if(document.getElementById('alis-fiyat-max')) {
+                    document.getElementById('alis-fiyat-max').innerText = alisMax.toFixed(2);
+                }
                 
-                if(document.getElementById('satis-fiyat-min')) document.getElementById('satis-fiyat-min').innerText = satisMin.toFixed(2);
-                if(document.getElementById('satis-fiyat-max')) document.getElementById('satis-fiyat-max').innerText = satisMax.toFixed(2);
+                if(document.getElementById('satis-fiyat-min')) {
+                    document.getElementById('satis-fiyat-min').innerText = satisMin.toFixed(2);
+                }
+                if(document.getElementById('satis-fiyat-max')) {
+                    document.getElementById('satis-fiyat-max').innerText = satisMax.toFixed(2);
+                }
 
-                console.log("14 Ayar fiyatları Firebase'den başarıyla çekildi!");
+                // Sayfa içindeki dinamik yazıları da otomatik güncelleyelim (İsteğe bağlı)
+                // Eğer HTML içinde id="ayar-baslik" olan bir yer varsa otomatik "14 Ayar" yazar.
+                if(document.getElementById('ayar-gosterge')) {
+                    document.getElementById('ayar-gosterge').innerText = aktifAyar + " Ayar";
+                }
+
+                console.log(`${aktifAyar} Ayar fiyatları başarıyla güncellendi!`);
                 
-                // Eğer bir hesaplama fonksiyonun (hesapla()) varsa, onu da burada çağırabilirsin:
-                // hesapla(); 
+                // Hesap makineniz varsa tetikleyin:
+                // hesapla(alisMin, satisMax);
             }
         } catch (error) {
-            console.error("Firebase'den veri çekilirken hata oluştu: ", error);
+            console.error("Veri çekilirken hata oluştu: ", error);
         }
     }
 
-    // Sayfa yüklendiğinde fiyatları hemen getir
+    // Sayfa açıldığında çalıştır
     fiyatlariGuncelle();
-
-    // İsteğe bağlı: Fiyatları sayfayı yenilemeden her 60 saniyede bir otomatik güncellemek için alt satırı aktif edebilirsin
-    // setInterval(fiyatlariGuncelle, 60000); 
+    
+    // 60 saniyede bir sayfayı yenilemeden arka planda verileri tazele
+    setInterval(fiyatlariGuncelle, 60000); 
 </script>
 
 
