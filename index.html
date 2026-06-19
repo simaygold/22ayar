@@ -1,1 +1,215 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    
+<title>22 Ayar Altın Gram ve Hurda Hesaplama Aracı | Net 22 Ayar | 22ayar.net</title>
+<meta name="description" content="Net 22 Ayar Bilezik ve Altınlarınız için anlık gram ve hurda hesaplama aracı. En güncel 22 ayar altın fiyatları.">
+<link rel="canonical" href="https://22ayar.net" />
+
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+   <script>
+    // Firebase Realtime Database URL'niz
+    const dbUrl = "https://tumwebsiteleri-default-rtdb.europe-west1.firebasedatabase.app/fiyatlar.json";
+
+    // Verileri çekme ve ekrana yazdırma fonksiyonu
+    async function fiyatlariGuncelle() {
+        try {
+            // Firebase'den veriyi alıyoruz
+            const response = await fetch(dbUrl);
+            const veri = await response.json();
+
+            // Veri başarıyla geldiyse HTML içindeki ID'leri bulup değerleri yazdırıyoruz
+            if (veri) {
+                // Sadece 14 Ayar ve Has Altın verilerini değişkenlere atıyoruz
+                const hasAltin = veri.HasAltinBazFiyat;
+                const alisMin = veri["14_Ayar_Alis_Fiyat_Min"];
+                const alisMax = veri["14_Ayar_Alis_Fiyat_Max"];
+                const satisMin = veri["14_Ayar_Satis_Fiyat_Min"];
+                const satisMax = veri["14_Ayar_Satis_Fiyat_Max"];
+
+                // HTML'deki ilgili alanlara (span/div) fiyatları yerleştiriyoruz. 
+                // NOT: Aşağıdaki ID'lerin senin HTML tasarımındaki ID'lerle aynı olduğundan emin ol.
+                if(document.getElementById('has-altin-fiyat')) document.getElementById('has-altin-fiyat').innerText = hasAltin.toFixed(2);
+                
+                if(document.getElementById('alis-fiyat-min')) document.getElementById('alis-fiyat-min').innerText = alisMin.toFixed(2);
+                if(document.getElementById('alis-fiyat-max')) document.getElementById('alis-fiyat-max').innerText = alisMax.toFixed(2);
+                
+                if(document.getElementById('satis-fiyat-min')) document.getElementById('satis-fiyat-min').innerText = satisMin.toFixed(2);
+                if(document.getElementById('satis-fiyat-max')) document.getElementById('satis-fiyat-max').innerText = satisMax.toFixed(2);
+
+                console.log("14 Ayar fiyatları Firebase'den başarıyla çekildi!");
+                
+                // Eğer bir hesaplama fonksiyonun (hesapla()) varsa, onu da burada çağırabilirsin:
+                // hesapla(); 
+            }
+        } catch (error) {
+            console.error("Firebase'den veri çekilirken hata oluştu: ", error);
+        }
+    }
+
+    // Sayfa yüklendiğinde fiyatları hemen getir
+    fiyatlariGuncelle();
+
+    // İsteğe bağlı: Fiyatları sayfayı yenilemeden her 60 saniyede bir otomatik güncellemek için alt satırı aktif edebilirsin
+    // setInterval(fiyatlariGuncelle, 60000); 
+</script>
+
+
+
+
+    
+</head>
+<body class="bg-gray-100 flex flex-col min-h-screen font-sans antialiased">
+
+    <header class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg py-5">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Net 14 Ayar</h1>
+            <p class="text-yellow-100 mt-2 font-medium">14ayar.net Hesaplama Aracı</p>
+        </div>
+    </header>
+
+    <main class="flex-grow max-w-3xl mx-auto px-4 py-10 w-full">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 md:p-10 border border-gray-200">
+            
+            <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="text-center bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
+                    <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">14 Ayar Bozdurma (Alış) Aralığı</h2>
+                    <div id="hurdaDisplay" class="text-2xl md:text-3xl font-black text-yellow-600 mt-2 drop-shadow-sm">Yükleniyor...</div>
+                </div>
+                
+                <div class="text-center bg-gray-50 rounded-2xl p-6 border border-gray-200">
+                    <h2 class="text-sm font-semibold text-gray-600 uppercase tracking-wide">14 Ayar Yeni Ürün (Satış) Aralığı</h2>
+                    <div id="yeniDisplay" class="text-2xl md:text-3xl font-black text-gray-700 mt-2 drop-shadow-sm">Yükleniyor...</div>
+                </div>
+            </div>
+            
+            <div id="statusDisplay" class="text-sm text-gray-500 mb-6 flex items-center justify-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                Veriler günceldir. Son Güncelleme: <span id="timeDisplay">...</span>
+            </div>
+
+            <div id="infoMessageDisplay" class="mb-8 bg-blue-50 border-l-4 border-blue-500 text-blue-800 p-5 rounded-r-xl text-sm md:text-base leading-relaxed whitespace-pre-line italic">
+                Veriler yükleniyor, lütfen bekleyin...
+            </div>
+
+            <hr class="border-gray-200 mb-8">
+
+            <div class="space-y-6">
+                <div class="relative">
+                    <label for="gramInput" class="block text-base font-bold text-gray-700 mb-3">Elinizdeki Altın Miktarı (Gram)</label>
+                    <input type="number" id="gramInput" placeholder="Örn: 15.5" step="0.01" class="w-full text-2xl px-5 py-4 rounded-xl border-2 border-gray-300 focus:ring-4 focus:ring-yellow-500/20 focus:border-yellow-500 transition-all shadow-sm outline-none" oninput="calculateTotal()" disabled>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    <div class="bg-gray-900 p-6 rounded-2xl text-center shadow-md">
+                        <p class="text-xs font-medium text-gray-400 mb-2 uppercase tracking-widest">Elinizdeki Ürünü Bu Fiyat Aralığında <span class="text-yellow-400 font-bold">Satabilirsiniz:</span></p>
+                        <div id="totalHurdaValue" class="text-xl md:text-2xl font-black text-white">0,00 TL</div>
+                    </div>
+                    
+                    <div class="bg-yellow-950 p-6 rounded-2xl text-center shadow-md border border-yellow-600/20">
+                        <p class="text-xs font-medium text-yellow-300 mb-2 uppercase tracking-widest">Yeni Bir Ürünü Bu Fiyat Aralığında <span class="text-yellow-400 font-bold">Alabilirsiniz:</span></p>
+                        <div id="totalYeniValue" class="text-xl md:text-2xl font-black text-yellow-500">0,00 TL</div>
+                    </div>
+                    
+                </div>
+                
+                <div class="text-center text-xs md:text-sm text-gray-500 pt-2 font-medium">
+                    ℹ️ Bu hesaplamalar için baz alınan anlık has altın (24 ayar) gram fiyatı: <span id="calcHasAltin" class="text-gray-800 font-bold">...</span> TL'dir.
+                </div>
+            </div>
+            
+        </div>
+    </main>
+
+    <footer class="bg-gray-900 text-gray-400 py-10 text-center text-sm mt-auto border-t border-gray-800">
+        <div class="max-w-4xl mx-auto px-6 space-y-4">
+            <p class="leading-relaxed text-base text-gray-300"><strong>Net 14 Ayar | 14ayar.net</strong> sitesi bir <strong>Simay Gold</strong> projesidir.</p>
+            <p class="leading-relaxed">📍 Simay Gold: Laleli / İSTANBUL</p>
+            <div class="pt-6 border-t border-gray-800 mt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>&copy; 2026 14ayar.net - Tüm hakları saklıdır.</p>
+                <p class="text-xs text-gray-500">Bu site <strong>CTY - Chook Temiz Yalova</strong> tarafından kodlanmıştır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Verileri uygulamanın her yerinden okuyabilmek için global bir değişkende tutuyoruz
+        let localGoldData = null;
+        
+        // Ortak TL Formatlayıcı fonksiyonu
+        const formatTL = (val) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+
+        function loadData() {
+            try {
+                if (window.goldData) {
+                    localGoldData = window.goldData;
+                    
+                    // Üst kutulardaki birim gram referans fiyatlarını bas
+                    document.getElementById('hurdaDisplay').innerText = `${formatTL(localGoldData.hurdaMin)} - ${formatTL(localGoldData.hurdaMax)} TL`;
+                    document.getElementById('yeniDisplay').innerText = `${formatTL(localGoldData.yeniMin)} - ${formatTL(localGoldData.yeniMax)} TL`;
+                    
+                    // Bilgilendirme metnini bas
+                    document.getElementById('infoMessageDisplay').innerText = localGoldData.infoMessage;
+
+                    // Güncelleme zamanını bas
+                    const timeDate = new Date(localGoldData.lastUpdate);
+                    document.getElementById('timeDisplay').innerText = timeDate.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
+
+                    // Hesap makinesinin altındaki Has Altın referans fiyatını güncelle
+                    document.getElementById('calcHasAltin').innerText = formatTL(localGoldData.hasAltin);
+
+                    // Inputu aktif et
+                    const inputField = document.getElementById('gramInput');
+                    inputField.disabled = false;
+                    inputField.placeholder = "Örn: 10.5";
+                } else {
+                    throw new Error("Veri paketi (goldData) bulunamadı.");
+                }
+            } catch (error) {
+                console.error("Veri Yükleme Hatası:", error);
+                document.getElementById('hurdaDisplay').innerText = "Hata";
+                document.getElementById('yeniDisplay').innerText = "Hata";
+                document.getElementById('infoMessageDisplay').innerText = "Fiyat bilgisi şu anda alınamıyor. Lütfen sayfayı yenileyin.";
+            }
+        }
+
+        // ÇİFT YÖNLÜ DİNAMİK HESAPLAMA FONKSİYONU
+        function calculateTotal() {
+            const gram = parseFloat(document.getElementById('gramInput').value);
+            const hurdaTotalDisplay = document.getElementById('totalHurdaValue');
+            const yeniTotalDisplay = document.getElementById('totalYeniValue');
+            
+            // Eğer veri henüz yüklenmediyse veya input boşsa sıfırla
+            if (!localGoldData || isNaN(gram) || gram <= 0) {
+                hurdaTotalDisplay.innerText = "0,00 TL";
+                yeniTotalDisplay.innerText = "0,00 TL";
+                return;
+            }
+
+            // 1. Bozdurma (Hurda Alış) Aralığı Hesaplama
+            const totalHurdaMin = gram * localGoldData.hurdaMin;
+            const totalHurdaMax = gram * localGoldData.hurdaMax;
+            
+            // 2. Yeni Ürün (Satış) Aralığı Hesaplama
+            const totalYeniMin = gram * localGoldData.yeniMin;
+            const totalYeniMax = gram * localGoldData.yeniMax;
+
+            // Sonuçları formatlı bir şekilde ekrana yansıt
+            hurdaTotalDisplay.innerText = `${formatTL(totalHurdaMin)} TL - ${formatTL(totalHurdaMax)} TL`;
+            yeniTotalDisplay.innerText = `${formatTL(totalYeniMin)} TL - ${formatTL(totalYeniMax)} TL`;
+        }
+
+        // Sayfa hazır olduğunda veriyi yükle
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
