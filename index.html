@@ -16,6 +16,13 @@
 </head>
 <body class="bg-gray-100 flex flex-col min-h-screen font-sans antialiased">
 
+    <div class="bg-gray-900 text-gray-300 text-center py-2.5 px-4 text-xs md:text-sm font-medium tracking-wide border-b border-gray-800">
+        🚀 Bu proje (<span class="domain-text text-white font-bold">...</span>) devredilecektir. İlgilenen yatırımcılar 
+        <a href="https://simaygold.com" rel="nofollow" target="_blank" class="text-yellow-400 font-bold hover:text-yellow-300 underline decoration-yellow-400/30 underline-offset-2 transition-colors">
+            buradan teklif verebilir.
+        </a>
+    </div>
+
     <header class="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white shadow-lg py-5">
         <div class="max-w-4xl mx-auto px-4 text-center">
             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">Net <span class="ayar-text">...</span> Ayar</h1>
@@ -90,66 +97,43 @@
     </footer>
 
     <script>
-        // Fiyat limitlerini saklayacağımız boş nesne
-        let fyt = {
-            hasAltin: 0,
-            hurdaMin: 0,
-            hurdaMax: 0,
-            yeniMin: 0,
-            yeniMax: 0
-        };
-
-        // Türk tipi para birimi formatlayıcı (Örn: 2322.56 -> 2.322,56)
+        let fyt = { hasAltin: 0, hurdaMin: 0, hurdaMax: 0, yeniMin: 0, yeniMax: 0 };
         const formatTL = (val) => new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
-
-        // Firebase Realtime Database URL (Avrupa Sunucusu)
         const dbUrl = "https://tumwebsiteleri-default-rtdb.europe-west1.firebasedatabase.app/fiyatlar.json";
 
-        // Sayfa açıldığında SEO meta verilerini ve statik yazıları giydirir
         function sayfaBilgileriniKur() {
             const domain = `${aktifAyar}ayar.net`;
-            
-            // SEO Meta verilerini ayarla
             document.getElementById('meta-title').innerText = `${aktifAyar} Ayar Altın Gram ve Hurda Hesaplama Aracı | Net ${aktifAyar} Ayar | ${domain}`;
             document.getElementById('meta-desc').setAttribute('content', `Net ${aktifAyar} Ayar Altın ve takılarınız için anlık gram ve hurda hesaplama aracı. En güncel ${aktifAyar} ayar altın fiyatları.`);
             document.getElementById('meta-canonical').setAttribute('href', `https://${domain}`);
 
-            // HTML içindeki tüm ".ayar-text" ve ".domain-text" etiketlerini otomatik doldur
             document.querySelectorAll('.ayar-text').forEach(el => el.innerText = aktifAyar);
             document.querySelectorAll('.domain-text').forEach(el => el.innerText = domain);
         }
 
-        // Firebase'den anlık JSON verisini çeker
         async function fiyatlariGuncelle() {
             try {
                 const response = await fetch(dbUrl);
                 const veri = await response.json();
 
                 if (veri) {
-                    // Firebase'deki düz düğüm isimlerini aktifAyar bilgisine göre dinamik eşleştiriyoruz
                     fyt.hasAltin = veri.HasAltinBazFiyat;
                     fyt.hurdaMin = veri[`${aktifAyar}_Ayar_Alis_Fiyat_Min`];
                     fyt.hurdaMax = veri[`${aktifAyar}_Ayar_Alis_Fiyat_Max`];
                     fyt.yeniMin = veri[`${aktifAyar}_Ayar_Satis_Fiyat_Min`];
                     fyt.yeniMax = veri[`${aktifAyar}_Ayar_Satis_Fiyat_Max`];
 
-                    // Birim fiyat göstergelerini ekrana bas
                     document.getElementById('hurdaDisplay').innerText = `${formatTL(fyt.hurdaMin)} - ${formatTL(fyt.hurdaMax)} TL`;
                     document.getElementById('yeniDisplay').innerText = `${formatTL(fyt.yeniMin)} - ${formatTL(fyt.yeniMax)} TL`;
-
-                    // Dipnot Has Altın fiyatını bas
                     document.getElementById('calcHasAltin').innerText = formatTL(fyt.hasAltin);
 
-                    // Son güncelleme saatini güncelle
                     const simdi = new Date();
                     document.getElementById('timeDisplay').innerText = simdi.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
 
-                    // Kilitli olan gram giriş kutusunu kullanıma aç
                     const inputField = document.getElementById('gramInput');
                     inputField.disabled = false;
                     inputField.placeholder = "Örn: 10.0";
 
-                    // Eğer kullanıcı veri girerken arka planda fiyat değişirse hesaplamayı anlık tazele
                     calculateTotal();
                 }
             } catch (error) {
@@ -159,36 +143,24 @@
             }
         }
 
-        // Dinamik Canlı Hesap Makinesi Fonksiyonu
         function calculateTotal() {
             const gram = parseFloat(document.getElementById('gramInput').value);
             const hurdaTotalDisplay = document.getElementById('totalHurdaValue');
             const yeniTotalDisplay = document.getElementById('totalYeniValue');
             
-            // Girdi geçersiz veya boşsa sıfırla
             if (isNaN(gram) || gram <= 0 || fyt.hasAltin === 0) {
                 hurdaTotalDisplay.innerText = "0,00 TL";
                 yeniTotalDisplay.innerText = "0,00 TL";
                 return;
             }
 
-            // Gramaj ile fiyatları çarpıyoruz
-            const tHurdaMin = gram * fyt.hurdaMin;
-            const tHurdaMax = gram * fyt.hurdaMax;
-            const tYeniMin = gram * fyt.yeniMin;
-            const tYeniMax = gram * fyt.yeniMax;
-
-            // Sonuçları ekrana basıyoruz
-            hurdaTotalDisplay.innerText = `${formatTL(tHurdaMin)} TL - ${formatTL(tHurdaMax)} TL`;
-            yeniTotalDisplay.innerText = `${formatTL(tYeniMin)} TL - ${formatTL(tYeniMax)} TL`;
+            hurdaTotalDisplay.innerText = `${formatTL(gram * fyt.hurdaMin)} TL - ${formatTL(gram * fyt.hurdaMax)} TL`;
+            yeniTotalDisplay.innerText = `${formatTL(gram * fyt.yeniMin)} TL - ${formatTL(gram * fyt.yeniMax)} TL`;
         }
 
-        // Sayfa tamamen yüklendiğinde tetiklenecek işlemler
         document.addEventListener('DOMContentLoaded', () => {
-            sayfaBilgileriniKur(); // 1. Başlıkları ve logoları kur
-            fiyatlariGuncelle();  // 2. Firebase'den canlı fiyatları giydir
-            
-            // Her 60 saniyede bir sayfayı yenilemeden verileri otomatik tazele
+            sayfaBilgileriniKur(); 
+            fiyatlariGuncelle();  
             setInterval(fiyatlariGuncelle, 60000);
         });
     </script>
